@@ -2,11 +2,9 @@ const express = require("express");
 const Database = require('better-sqlite3');
 const path = require("path");
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
 app.use(express.static("public"));
-
+const PORT = process.env.PORT || 3000;
+app.use(express.json());
 let db = new Database('./database.db');
 
 // Create all tables at once
