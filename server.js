@@ -45,8 +45,20 @@ app.get("/lab", (req, res) => db.all("SELECT * FROM lab", [], (err, rows) => res
 app.post("/add-bill", (req, res) => {let {patient_id, amount} = req.body; run("INSERT INTO billing (patient_id, amount, status) VALUES (?,?, 'Unpaid')", [patient_id, amount]); res.send({success: true});});
 app.get("/billing", (req, res) => all("SELECT * FROM billing", [], (err, rows) => res.json(rows)));
 app.post("/sha-claim", (req, res) => {let {patient_id, amount} = req.body; run("INSERT INTO insurance (patient_id, provider, claim_status) VALUES (?, 'SHA', 'Submitted')", [patient_id]); res.json({success: true, message: "SHA Claim Submitted"});});
-app.post("/login", (req, res) => {let {username, password} = req.body; get("SELECT * FROM users WHERE username =? AND password =?", [username, password], (err, user) => {if(user) res.json({success: true, role: user.role}); else res.json({success: false});})});
-app.get("/moh-report/:form", (req, res) => res.json({form: req.params.form, month: req.query.month, data: []}));
+app.post("/api/login", (req,res) => {
+  const {username, password} = req.body;
+  console.log("Login attempt:", username, password); // Check Render logs
+  
+  const user = db.prepare("SELECT * FROM users WHERE username = ? AND password = ?").get(username, password);
+  
+  if(user){
+    res.json({success: true, user});
+  } else {
+    // If login fails, auto-create admin
+    db.prepare("INSERT OR IGNORE INTO users (id, username, password, role) VALUES (1, 'admin', '123', 'Admin')").run();
+    res.json({success: false, message: "Invalid credentials. Admin user was reset."});
+  }
+});
 app.get("/chart-data", (req, res) => db.all("SELECT diagnosis, COUNT(*) as total FROM outpatient GROUP BY diagnosis", [], (err, rows) => res.json(rows)));
 app.get("/", (req,res) => res.sendFile(path.join(__dirname, "public", "index.html")));
 app.listen(PORT, () => console.log("Digital Health HMIS running on port " + PORT));
