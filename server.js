@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS insurance (id INTEGER PRIMARY KEY AUTOINCREMENT, pati
 INSERT OR IGNORE INTO users (id, username, password, role) VALUES (1, 'admin', '123', 'Admin');
 `);
 
+
 // Helper functions so the rest of the code stays clean
 const run = (sql, params=[]) => db.prepare(sql).run(...params);
 const all = (sql, params=[]) => db.prepare(sql).all(...params);
@@ -46,5 +47,5 @@ app.post("/sha-claim", (req, res) => {let {patient_id, amount} = req.body; run("
 app.post("/login", (req, res) => {let {username, password} = req.body; get("SELECT * FROM users WHERE username =? AND password =?", [username, password], (err, user) => {if(user) res.json({success: true, role: user.role}); else res.json({success: false});})});
 app.get("/moh-report/:form", (req, res) => res.json({form: req.params.form, month: req.query.month, data: []}));
 app.get("/chart-data", (req, res) => db.all("SELECT diagnosis, COUNT(*) as total FROM outpatient GROUP BY diagnosis", [], (err, rows) => res.json(rows)));
-
+app.get("/", (req,res) => res.sendFile(path.join(__dirname, "public", "index.html")));
 app.listen(PORT, () => console.log("Digital Health HMIS running on port " + PORT));
