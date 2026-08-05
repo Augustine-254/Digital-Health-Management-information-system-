@@ -9,24 +9,26 @@ app.use(express.static("public"));
 
 let db = new Database('./database.db');
 
-serialize(() => {
-run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, role TEXT)");
-run("CREATE TABLE IF NOT EXISTS patients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER, gender TEXT, phone TEXT)");
-run("CREATE TABLE IF NOT EXISTS admissions (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, diagnosis TEXT, admit_date DATE, discharge_date DATE, outcome TEXT)");
-run("CREATE TABLE IF NOT EXISTS anc (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, visit_no INTEGER, visit_date DATE, bp TEXT, weight REAL)");
-run("CREATE TABLE IF NOT EXISTS delivery (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, delivery_date DATE, delivery_type TEXT, outcome TEXT)");
-run("CREATE TABLE IF NOT EXISTS immunization (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, vaccine TEXT, date DATE)");
-run("CREATE TABLE IF NOT EXISTS outpatient (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, diagnosis TEXT, visit_date DATE)");
-run("CREATE TABLE IF NOT EXISTS pharmacy (id INTEGER PRIMARY KEY AUTOINCREMENT, drug TEXT, quantity INTEGER)");
-run("CREATE TABLE IF NOT EXISTS lab (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, test TEXT, result TEXT, date DATE)");
-run("CREATE TABLE IF NOT EXISTS billing (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, amount REAL, status TEXT)");
-run("CREATE TABLE IF NOT EXISTS insurance (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, provider TEXT, claim_status TEXT)");
-run("INSERT OR IGNORE INTO users (id, username, password, role) VALUES (1, 'admin', '123', 'Admin')");
-});
+// Create all tables at once
+db.exec(`
+CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, role TEXT);
+CREATE TABLE IF NOT EXISTS patients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER, gender TEXT, phone TEXT);
+CREATE TABLE IF NOT EXISTS admissions (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, diagnosis TEXT, admit_date DATE, discharge_date DATE, outcome TEXT);
+CREATE TABLE IF NOT EXISTS anc (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, visit_no INTEGER, visit_date DATE, bp TEXT, weight REAL);
+CREATE TABLE IF NOT EXISTS delivery (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, delivery_date DATE, delivery_type TEXT, outcome TEXT);
+CREATE TABLE IF NOT EXISTS immunization (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, vaccine TEXT, date DATE);
+CREATE TABLE IF NOT EXISTS outpatient (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, diagnosis TEXT, visit_date DATE);
+CREATE TABLE IF NOT EXISTS pharmacy (id INTEGER PRIMARY KEY AUTOINCREMENT, drug TEXT, quantity INTEGER);
+CREATE TABLE IF NOT EXISTS lab (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, test TEXT, result TEXT, date DATE);
+CREATE TABLE IF NOT EXISTS billing (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, amount REAL, status TEXT);
+CREATE TABLE IF NOT EXISTS insurance (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, provider TEXT, claim_status TEXT);
+INSERT OR IGNORE INTO users (id, username, password, role) VALUES (1, 'admin', '123', 'Admin');
+`);
+
+// Helper functions so the rest of the code stays clean
 const run = (sql, params=[]) => db.prepare(sql).run(...params);
 const all = (sql, params=[]) => db.prepare(sql).all(...params);
 const get = (sql, params=[]) => db.prepare(sql).get(...params);
-
 // APIs
 app.post("/add-patient", (req, res) => {let {name, age, gender, phone} = req.body; run("INSERT INTO patients (name, age, gender, phone) VALUES (?,?,?,?)", [name, age, gender, phone]); res.send({success: true});});
 app.post("/add-outpatient", (req,res)=>{let {patient_id, diagnosis}=req.body; let date=new Date().toISOString().split('T')[0]; run("INSERT INTO outpatient (patient_id, diagnosis, visit_date) VALUES (?,?,?)",[patient_id, diagnosis, date]); res.send({success:true})})
