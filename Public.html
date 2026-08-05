@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Kitale Care HMIS - Kenya</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; background: #f4f6f8; padding: 20px; }
+    .card { background: white; padding: 20px; border-radius: 8px; max-width: 1000px; margin: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    input, button, select { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc; }
+    button { background: #2563eb; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #1e40af; }
+    button.green { background: #16a34a; }
+    .tabs button { width: auto; margin-right: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #2563eb; color: white; }
+    .tab { display: none; }
+    @media print { .no-print { display: none; } h2 { color: black; } }
+    h2 { color: #2563eb; }
+  </style>
+</head>
+<body>
+  <div id="loginBox" class="card no-print">
+    <h2>Kitale Care HMIS 🔥</h2>
+    <p>Login: admin / 123</p>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="appBox" class="card" style="display:none;">
+    <h2>Kitale Care HMIS - <span id="userRole"></span></h2>
+    <div class="tabs no-print">
+      <button onclick="showTab('patients')">Patients</button>
+      <button onclick="showTab('admission')">Admission</button>
+      <button onclick="showTab('anc')">ANC</button>
+      <button onclick="showTab('delivery')">Delivery</button>
+      <button onclick="showTab('vaccine')">Immunization</button>
+      <button onclick="showTab('lab')">Lab</button>
+      <button onclick="showTab('pharmacy')">Pharmacy</button>
+      <button onclick="showTab('billing')">Billing + SHA</button>
+      <button onclick="showTab('reports')">MOH Reports</button>
+      <button onclick="showTab('charts')">Charts</button>
+    </div>
+
+    <!-- PATIENTS -->
+    <div id="patients" class="tab">
+      <h3>Patient + Outpatient Registration</h3>
+      <input id="name" placeholder="Patient Name">
+      <input id="age" type="number" placeholder="Age">
+      <select id="gender"><option>Male</option><option>Female</option></select>
+      <input id="phone" placeholder="Phone 2547...">
+      <input id="diagnosis" placeholder="Diagnosis e.g Malaria">
+      <button onclick="addPatient()">Save Patient</button>
+      <button class="green" onclick="addOutpatient()">Save Outpatient Visit</button>
+      <input id="search" placeholder="Search patient..." onkeyup="loadPatients()">
+      <table id="patientTable"><tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th></tr></table>
+    </div>
+
+    <!-- ADMISSION -->
+    <div id="admission" class="tab">
+      <h3>Ward Admission / Discharge - MOH 705A</h3>
+      <input id="adm_pid" type="number" placeholder="Patient ID">
+      <input id="adm_diagnosis" placeholder="Admission Diagnosis">
+      <button onclick="admitPatient()">Admit Patient</button>
+      <hr>
+      <input id="dis_id" type="number" placeholder="Admission ID">
+      <input id="outcome" placeholder="Outcome: Cured, Died, Referred">
+      <button onclick="dischargePatient()">Discharge Patient</button>
+    </div>
+
+    <!-- ANC -->
+    <div id="anc" class="tab">
+      <h3>ANC Visits - MOH 717</h3>
+      <input id="anc_pid" type="number" placeholder="Patient ID">
+      <input id="visit_no" type="number" placeholder="Visit No: 1,2,3,4">
+      <input id="bp" placeholder="BP e.g 120/80">
+      <input id="weight" type="number" placeholder="Weight Kg">
+      <button onclick="addANC()">Save ANC Visit</button>
+    </div>
+
+    <!-- DELIVERY -->
+    <div id="delivery" class="tab">
+      <h3>Delivery Register - MOH 705B</h3>
+      <input id="del_pid" type="number" placeholder="Patient ID">
+      <select id="del_type"><option>SVD</option><option>CS</option><option>Assisted</option></select>
+      <input id="del_outcome" placeholder="Outcome: Alive, Stillbirth">
+      <button onclick="addDelivery()">Record Delivery</button>
+    </div>
+
+    <!-- VACCINE -->
+    <div id="vaccine" class="tab">
+      <h3>Immunization - MOH 100</h3>
+      <input id="vac_pid" type="number" placeholder="Child Patient ID">
+      <select id="vaccine"><option>BCG</option><option>OPV</option><option>Penta</option><option>Measles</option><option>COVID</option></select>
+      <button onclick="addVaccine()">Give Vaccine</button>
+    </div>
+
+    <!-- LAB -->
+    <div id="lab" class="tab">
+      <h3>Laboratory - MOH 240</h3>
+      <input id="lab_pid" type="number" placeholder="Patient ID">
+      <input id="test" placeholder="Test e.g CBC">
+      <input id="result" placeholder="Result">
+      <button onclick="addLab()">Save Result</button>
+      <table id="labTable"><tr><th>PID</th><th>Test</th><th>Result</th><th>Date</th></tr></table>
+    </div>
+
+    <!-- PHARMACY -->
+    <div id="pharmacy" class="tab">
+      <h3>Pharmacy Stock - MOH 512</h3>
+      <input id="drug" placeholder="Drug Name">
+      <input id="quantity" type="number" placeholder="Quantity">
+      <button onclick="addDrug()">Add Stock</button>
+      <table id="pharmacyTable"><tr><th>Drug</th><th>Qty</th></tr></table>
+    </div>
+
+    <!-- BILLING -->
+    <div id="billing" class="tab">
+      <h3>Billing + SHA Claims</h3>
+      <input id="bill_pid" type="number" placeholder="Patient ID">
+      <input id="amount" type="number" placeholder="Amount Ksh">
+      <button onclick="addBill()">Create Bill</button>
+      <button class="green" onclick="submitSHA()">Submit to SHA</button>
+      <table id="billTable"><tr><th>ID</th><th>PID</th><th>Amount</th><th>Status</th></tr></table>
+    </div>
+
+    <!-- MOH REPORTS -->
+    <div id="reports" class="tab">
+      <h3>MOH Reports Kenya - Export to DHIS2</h3>
+      <select id="mohForm">
+        <option>MOH710</option><option>MOH711</option><option>MOH705A</option><option>MOH705B</option>
+        <option>MOH100</option><option>MOH717</option><option>MOH240</option><option>MOH512</option>
+      </select>
+      <input id="reportMonth" type="month">
+      <button onclick="generateMOH()">Generate Report</button>
+      <button class="green" onclick="exportCSV()">Export CSV for DHIS2</button>
+      <button onclick="window.print()">Print PDF</button>
+      <div id="mohResult"></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div id="charts" class="tab">
+      <h3>Disease Trends</h3>
+      <canvas id="diseaseChart"></canvas>
+    </div>
+  </div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+  if(id==='patients') loadPatients();
+  if(id==='pharmacy') loadPharmacy();
+  if(id==='lab') loadLab();
+  if(id==='billing') loadBilling();
+  if(id==='charts') loadChart();
+}
+
+function login() {
+  fetch("/login", {method:"POST", headers:{"Content-Type":"application/json"}, 
+  body: JSON.stringify({username: username.value, password: password.value})})
+  .then(res=>res.json()).then(d=>{ 
+    if(d.success){
+      userRole.innerText = d.role;
+      loginBox.style.display='none'; 
+      appBox.style.display='block'; 
+      showTab('patients');
+    } else alert("Wrong login!")
+  })
+}
+
+// PATIENTS
+function addPatient(){ fetch("/add-patient",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:name.value,age:age.value,gender:gender.value,phone:phone.value})}).then(()=>{alert("Patient Saved!"); loadPatients()})}
+function addOutpatient(){ fetch("/add-outpatient",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({patient_id:prompt("Enter Patient ID"), diagnosis:diagnosis.value})}).then(()=>alert("Outpatient Visit Saved!"))}
+function loadPatients(){ fetch("/patients?search="+search.value).then(res=>res.json()).then(data=>{patientTable.innerHTML="<tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th></tr>"; data.forEach(p=>patientTable.innerHTML+=`<tr><td>${p.id}</td><td>${p.name}</td><td>${p.age}</td><td>${p.gender}</td><td>${p.phone}</td></tr>`)})}
+
+// OTHER MODULES
+function admitPatient(){ fetch("/admit-patient",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({patient_id:adm_pid.value, diagnosis:adm_diagnosis.value})}).then(()=>alert("Admitted!"))}
+function dischargePatient(){ fetch("/discharge-patient",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:dis_id.value, outcome:outcome.value})}).then(()=>alert("Discharged!"))}
+function addANC(){ fetch("/add-anc",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({patient_id:anc_pid.value, visit_no:visit_no.value, bp:bp.value, weight:weight.value})}).then(()=>alert("ANC Saved!"))}
+function addDelivery(){ fetch("/add-delivery",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({patient_id:del_pid.value, delivery_type:del_type.value, outcome:del_outcome.value})}).then(()=>alert("Delivery Recorded!"))}
+function addVaccine(){ fetch("/add-vaccine",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({patient_id:vac_pid.value, vaccine:vaccine.value})}).then(()=>alert("Vaccine Given!"))}
+function addDrug(){ fetch("/add-drug",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({drug:drug.value,quantity:quantity.value})}).then(()=>loadPharmacy())}
+function loadPharmacy(){ fetch("/pharmacy").then(res=>res.json()).then(data=>{pharmacyTable.innerHTML="<tr><th>Drug</th><th>Qty</th></tr>"; data.forEach(d=>pharmacyTable.innerHTML+=`<tr><td>${d.drug}</td><td>${d.quantity}</td></tr>`)})}
+function addLab(){ fetch("/add-lab",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({patient_id:lab_pid.value,test:test.value,result:result.value})}).then(()=>loadLab())}
+function loadLab(){ fetch("/lab").then(res=>res.json()).then(data=>{labTable.innerHTML="<tr><th>PID</th><th>Test</th><th>Result</th><th>Date</th></tr>"; data.forEach(l=>labTable.innerHTML+=`<tr><td>${l.patient_id}</td><td>${l.test}</td><td>${l.result}</td><td>${l.date}</td></tr>`)})}
+function addBill(){ fetch("/add-bill",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({patient_id:bill_pid.value,amount:amount.value})}).then(()=>loadBilling())}
+function loadBilling(){ fetch("/billing").then(res=>res.json()).then(data=>{billTable.innerHTML="<tr><th>ID</th><th>PID</th><th>Amount</th><th>Status</th></tr>"; data.forEach(b=>billTable.innerHTML+=`<tr><td>${b.id}</td><td>${b.patient_id}</td><td>${b.amount}</td><td>${b.status}</td></tr>`)})}
+function submitSHA(){ fetch("/sha-claim", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({patient_id:bill_pid.value, amount:amount.value})}).then(res=>res.json()).then(d=>alert(d.message))}
+
+// MOH REPORTS
+function generateMOH(){
+  let form = mohForm.value;
+  let month = reportMonth.value;
+  fetch(`/moh-report/${form}?month=${month}`).then(res=>res.json()).then(data=>{
+    let table = "<table><tr>";
+    if(data.data.length > 0) Object.keys(data.data[0]).forEach(k => table += `<th>${k}</th>`);
+    table += "</tr>";
+    data.data.forEach(r => { table += "<tr>"; Object.values(r).forEach(v => table += `<td>${v}</td>`); table += "</tr>"});
+    table += "</table>";
+    mohResult.innerHTML = `<h4>${data.form} for ${data.month}</h4>` + table;
+  })
+}
+function exportCSV(){
+  let form = mohForm.value;
+  let month = reportMonth.value;
+  fetch(`/moh-report/${form}?month=${month}&export=true`).then(res=>res.json()).then(data=>{
+    alert("CSV Created: " + data.file + ". Download it and upload to DHIS2");
+  })
+}
+
+// CHARTS
+function loadChart(){
+  fetch("/chart-data").then(res=>res.json()).then(data=>{
+    new Chart(document.getElementById('diseaseChart'), {
+      type: 'bar',
+      data: {
+        labels: data.map(d=>d.diagnosis),
+        datasets: [{label: 'Cases', data: data.map(d=>d.total), backgroundColor: '#2563eb'}]
+      }
+    });
+  })
+}
+</script>
+</body>
+</html>
