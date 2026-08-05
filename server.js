@@ -9,7 +9,7 @@ app.use(express.static("public"));
 
 let db = new Database('./database.db');
 
-db.serialize(() => {
+serialize(() => {
 run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, role TEXT)");
 run("CREATE TABLE IF NOT EXISTS patients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER, gender TEXT, phone TEXT)");
 run("CREATE TABLE IF NOT EXISTS admissions (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, diagnosis TEXT, admit_date DATE, discharge_date DATE, outcome TEXT)");
