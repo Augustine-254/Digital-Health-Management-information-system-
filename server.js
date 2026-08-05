@@ -23,6 +23,9 @@ run("CREATE TABLE IF NOT EXISTS billing (id INTEGER PRIMARY KEY AUTOINCREMENT, p
 run("CREATE TABLE IF NOT EXISTS insurance (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, provider TEXT, claim_status TEXT)");
 run("INSERT OR IGNORE INTO users (id, username, password, role) VALUES (1, 'admin', '123', 'Admin')");
 });
+const run = (sql, params=[]) => db.prepare(sql).run(...params);
+const all = (sql, params=[]) => db.prepare(sql).all(...params);
+const get = (sql, params=[]) => db.prepare(sql).get(...params);
 
 // APIs
 app.post("/add-patient", (req, res) => {let {name, age, gender, phone} = req.body; run("INSERT INTO patients (name, age, gender, phone) VALUES (?,?,?,?)", [name, age, gender, phone]); res.send({success: true});});
