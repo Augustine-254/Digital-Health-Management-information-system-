@@ -1,4 +1,4 @@
-
+const PORT = process.env.PORT || 3000;
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const fs = require("fs");
@@ -37,5 +37,7 @@ app.post("/add-bill", (req, res) => {let {patient_id, amount} = req.body; db.run
 app.get("/billing", (req, res) => db.all("SELECT * FROM billing", [], (err, rows) => res.json(rows)));
 app.post("/sha-claim", (req, res) => {let {patient_id, amount} = req.body; db.run("INSERT INTO insurance (patient_id, provider, claim_status) VALUES (?, 'SHA', 'Submitted')", [patient_id]); res.json({success: true, claim_id: "SHA" + Date.now()});});
 app.post("/login", (req, res) => {let {username, password} = req.body; db.get("SELECT * FROM users WHERE username =? AND password =?", [username, password], (err, user) => {if(user) res.json({success: true, role: user.role}); else res.json({success: false});});
-
-app.listen(3000, () => console.log("KENYA HMIS running on http://localhost:3000"));
+app.post("/discharge-patient", (req, res) => {let {id, outcome} = req.body; let date = new Date().toISOString().split('T')[0]; db.run("UPDATE admissions SET discharge_date=?, outcome=? WHERE id=?", [date, outcome, id]); res.send({success: true});});
+app.get("/moh-report/:form", (req, res) => res.json({form: req.params.form, month: req.query.month, data: []}));
+app.get("/chart-data", (req, res) => db.all("SELECT diagnosis, COUNT(*) as total FROM outpatient GROUP BY diagnosis", [], (err, rows) => res.json(rows)));
+app.listen(PORT, () => console.log("KENYA HMIS running on port " + PORT));
