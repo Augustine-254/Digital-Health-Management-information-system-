@@ -159,7 +159,7 @@ function showTab(id) {
 }
 
 function login() {
-  fetch("/login", {method:"POST", headers:{"Content-Type":"application/json"}, 
+  fetch("api/login",https://digital-health-management-information-6a74.onrender.com/api/login {method:"POST", headers:{"Content-Type":"application/json"}, 
   body: JSON.stringify({username: username.value, password: password.value})})
   .then(res=>res.json()).then(d=>{ 
     if(d.success){
