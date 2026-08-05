@@ -33,14 +33,14 @@ app.post("/discharge-patient", (req, res) => {let {id, outcome} = req.body; let 
 app.post("/add-anc", (req, res) => {let {patient_id, visit_no, bp, weight} = req.body; let date = new Date().toISOString().split('T')[0]; run("INSERT INTO anc (patient_id, visit_no, visit_date, bp, weight) VALUES (?,?,?,?,?)", [patient_id, visit_no, date, bp, weight]); res.send({success: true});});
 app.post("/add-delivery", (req, res) => {let {patient_id, delivery_type, outcome} = req.body; let date = new Date().toISOString().split('T')[0]; run("INSERT INTO delivery (patient_id, delivery_date, delivery_type, outcome) VALUES (?,?,?,?)", [patient_id, date, delivery_type, outcome]); res.send({success: true});});
 app.post("/add-vaccine", (req, res) => {let {patient_id, vaccine} = req.body; let date = new Date().toISOString().split('T')[0]; run("INSERT INTO immunization (patient_id, vaccine, date) VALUES (?,?,?)", [patient_id, vaccine, date]); res.send({success: true});});
-app.post("/add-drug", (req, res) => {let {drug, quantity} = req.body; db.run("INSERT INTO pharmacy (drug, quantity) VALUES (?,?)", [drug, quantity]); res.send({success: true});});
-app.get("/pharmacy", (req, res) => db.all("SELECT * FROM pharmacy", [], (err, rows) => res.json(rows)));
-app.post("/add-lab", (req, res) => {let {patient_id, test, result} = req.body; let date = new Date().toISOString().split('T')[0]; db.run("INSERT INTO lab (patient_id, test, result, date) VALUES (?,?,?,?)", [patient_id, test, result, date]); res.send({success: true});});
+app.post("/add-drug", (req, res) => {let {drug, quantity} = req.body; run("INSERT INTO pharmacy (drug, quantity) VALUES (?,?)", [drug, quantity]); res.send({success: true});});
+app.get("/pharmacy", (req, res) => all("SELECT * FROM pharmacy", [], (err, rows) => res.json(rows)));
+app.post("/add-lab", (req, res) => {let {patient_id, test, result} = req.body; let date = new Date().toISOString().split('T')[0]; run("INSERT INTO lab (patient_id, test, result, date) VALUES (?,?,?,?)", [patient_id, test, result, date]); res.send({success: true});});
 app.get("/lab", (req, res) => db.all("SELECT * FROM lab", [], (err, rows) => res.json(rows)));
-app.post("/add-bill", (req, res) => {let {patient_id, amount} = req.body; db.run("INSERT INTO billing (patient_id, amount, status) VALUES (?,?, 'Unpaid')", [patient_id, amount]); res.send({success: true});});
-app.get("/billing", (req, res) => db.all("SELECT * FROM billing", [], (err, rows) => res.json(rows)));
-app.post("/sha-claim", (req, res) => {let {patient_id, amount} = req.body; db.run("INSERT INTO insurance (patient_id, provider, claim_status) VALUES (?, 'SHA', 'Submitted')", [patient_id]); res.json({success: true, message: "SHA Claim Submitted"});});
-app.post("/login", (req, res) => {let {username, password} = req.body; db.get("SELECT * FROM users WHERE username =? AND password =?", [username, password], (err, user) => {if(user) res.json({success: true, role: user.role}); else res.json({success: false});})});
+app.post("/add-bill", (req, res) => {let {patient_id, amount} = req.body; run("INSERT INTO billing (patient_id, amount, status) VALUES (?,?, 'Unpaid')", [patient_id, amount]); res.send({success: true});});
+app.get("/billing", (req, res) => all("SELECT * FROM billing", [], (err, rows) => res.json(rows)));
+app.post("/sha-claim", (req, res) => {let {patient_id, amount} = req.body; run("INSERT INTO insurance (patient_id, provider, claim_status) VALUES (?, 'SHA', 'Submitted')", [patient_id]); res.json({success: true, message: "SHA Claim Submitted"});});
+app.post("/login", (req, res) => {let {username, password} = req.body; get("SELECT * FROM users WHERE username =? AND password =?", [username, password], (err, user) => {if(user) res.json({success: true, role: user.role}); else res.json({success: false});})});
 app.get("/moh-report/:form", (req, res) => res.json({form: req.params.form, month: req.query.month, data: []}));
 app.get("/chart-data", (req, res) => db.all("SELECT diagnosis, COUNT(*) as total FROM outpatient GROUP BY diagnosis", [], (err, rows) => res.json(rows)));
 
