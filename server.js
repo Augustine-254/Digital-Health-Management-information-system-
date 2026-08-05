@@ -1,3 +1,5 @@
+const cors = require("cors");
+app.use(cors());
 const express = require("express");
 const Database = require('better-sqlite3');
 const path = require("path");
@@ -45,12 +47,10 @@ app.get("/lab", (req, res) => db.all("SELECT * FROM lab", [], (err, rows) => res
 app.post("/add-bill", (req, res) => {let {patient_id, amount} = req.body; run("INSERT INTO billing (patient_id, amount, status) VALUES (?,?, 'Unpaid')", [patient_id, amount]); res.send({success: true});});
 app.get("/billing", (req, res) => all("SELECT * FROM billing", [], (err, rows) => res.json(rows)));
 app.post("/sha-claim", (req, res) => {let {patient_id, amount} = req.body; run("INSERT INTO insurance (patient_id, provider, claim_status) VALUES (?, 'SHA', 'Submitted')", [patient_id]); res.json({success: true, message: "SHA Claim Submitted"});});
-app.post("/api/login", (req,res) => {
+app.post("/login", (req,res) => {
   const {username, password} = req.body;
   console.log("Login attempt:", username, password); // Check Render logs
-  
   const user = db.prepare("SELECT * FROM users WHERE username = ? AND password = ?").get(username, password);
-  
   if(user){
     res.json({success: true, user});
   } else {
