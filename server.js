@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS billing (id INTEGER PRIMARY KEY AUTOINCREMENT, patien
 CREATE TABLE IF NOT EXISTS insurance (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id INTEGER, provider TEXT, claim_status TEXT);
 INSERT OR IGNORE INTO users (id, username, password, role) VALUES (1, 'admin', '123', 'Admin');
 `);
-
+// Force create admin if missing
+db.prepare("INSERT OR IGNORE INTO users (id, username, password, role) VALUES (1, 'admin', '123', 'Admin')").run();
 
 // Helper functions so the rest of the code stays clean
 const run = (sql, params=[]) => db.prepare(sql).run(...params);
